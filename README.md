@@ -241,8 +241,8 @@ Open source Hashicorp Vault to store passwords ??
 TBD
 ##   <span style="color:blue;font-weight:bold">Monitoring</span>
 - Monitor URLs : 
-1. Airflow Webserver UI : "https://sss-qualif.symphonygold.com" and "https://sss.symphonygold.com" 
-1. Airflow Flower UI : "https://sss-workers-qualif.symphonygold.com" and "https://sss-workers.symphonygold.com" 
+1. Airflow Webserver UI 
+1. Airflow Flower UI 
 - Monitor Postgresql server on the primary node                
 - Monitor Postgresql streaming replication
 - Regularly monitor your Redis instances to check their health and replication status.
