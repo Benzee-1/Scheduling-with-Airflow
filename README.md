@@ -131,7 +131,7 @@ _**Table: Example of environment**_
 
 ###  <span style="color:blue;font-weight:bold">High availability and fault tolerance</span>
 
-####**Database Backend** 
+#### **Database Backend** 
 ---
 Use of highly available database for the Airflow metadata could be the best choice, it can provide rplication and automatic failover.
 
