@@ -8,7 +8,8 @@
 
 _**Diagram : Apache Airflow components**_
 
-![image.png](/.attachments/image-0f836a9a-2c70-4cb2-88a6-cbbc8d8617cf.png =500x)
+![image](https://github.com/user-attachments/assets/39de4aeb-2ad0-404b-a9f4-dd4aba15d14c)
+
 
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Airflow's design is based on a set of core components that work together to provide workflow management system (_Diagram : Apache Airflow components_). 
