@@ -153,7 +153,7 @@ Once the standby server(s) is configured and the base backup is in place, **WAL 
 PostgreSQL supports both **synchronous** and **asynchronous** replication. In synchronous replication, a transaction is not considered complete on the primary until it has been confirmed written to the WAL on both the primary and standby server(s). This provides strong guarantees of data consistency but can affect performance. In asynchronous replication, there is a potential for data loss if the primary fails before the standby has received all changes, but it provides better performance since transactions are considered complete as soon as the WAL is written on the primary.
 
 
-####**Webserver Redundancy** 
+#### **Webserver Redundancy** 
 ---
 We install multiple (at least 2) webservers on different physical servers, and we load balance the these nodes with HAproxy. This ensure that the UI and scheduling capabilities are always available.
 
@@ -163,7 +163,7 @@ We install multiple (at least 2) webservers on different physical servers, and w
 To run Airflow with multiple schedulers, we need to use Airflow 2.x and  a database backend that supports multiple schedulers, such as PostgreSQL( or MySQL).
 
 
-####**Redis replication**
+#### **Redis replication**
 ---
 The replication method used in Redis is the basic Primary-Replica or Leader-Follower replication. This setup consists of a single master Redis instance and one or more follower instances. 
 
