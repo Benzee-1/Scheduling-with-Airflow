@@ -91,3 +91,164 @@ Here are some key concepts and features that have motivated our choice of Apache
 ##   <span style="color:blue;font-weight:bold">General Technical Architecture </span>
 ![Airflow-Technical-Architecture-Diagram5](https://github.com/user-attachments/assets/d9978fad-104d-4226-a309-d023419ed822)
 
+##   <span style="color:blue;font-weight:bold">Technical infrastructure</span>
+
+### Environments 
+
+An environment is composed of 2 servers.
+Servers must be deployed in different racks, it's preferable to deploy them in different server rooms.
+Servers should be deployed in same network as workers.
+
+_**Table: Example of environment**_
+| Node | IP Address | Memory |CPU  |  |
+|--|--|--|--|--|
+| AIRFLOW-SERVER1 | 10.11.12.10  |16  | 2 |  |
+| AIRFLOW-SERVER2 | 10.11.12.20 |16  |  2|  |
+
+
+##   <span style="color:blue;font-weight:bold">Software components</span>
+**Linux** : Any Linux 8.x 
+**Python** : Airflow is written in Python language. All these Python version are compatible with Airflow 2.9.2 : Python: 3.8, 3.9, 3.10, 3.11, 3.12 [(Ref)](https://airflow.apache.org/docs/apache-airflow/2.9.1/installation/prerequisites.html)
+**Apache Airflow** : Installed with pip Python tool.  Installed components : Webserver, Scheduler, Celery Executor, Flower UI
+**HAproxy** : As load balancer to Webserver and Flower UI (Uses of HAproxy provided by CLoud Services)
+**Postgresql** : As as metadata database
+**Redis** : As message broker
+
+
+|Software  | Version |Comment |
+|--|--|--|
+|Linux | Linux 8|
+| Python | 3.9 | Python is installed in a vitual environment |
+| Airflow | 2.10.1 |The latest release so far (3<sup>rd</sup> june'24) [Ref](https://airflow.apache.org/announcements/)|
+|HAproxy | 2.9.x |  |
+| Postgresql | 14.x | Seems the most stable release |
+| Redis community | 7.4-rc |  |
+
+
+
+
+##  <span style="color:blue;font-weight:bold">Robustness of the solution</span>
+
+###  <span style="color:blue;font-weight:bold">High availability and fault tolerance</span>
+
+####**Database Backend** 
+---
+Use of highly available database for the Airflow metadata could be the best choice, it can provide rplication and automatic failover.
+
+There are several solutions and architectures designed to achieve HA for PostgreSQL, each with its own set of features, complexities, and trade-offs.
+> We chose  Postgresql **"Streaming Replication"** for its relative simplicity of deployment. **Warm standby mode** and **asynchronous** replication are selected (Implementation document coming soon). **Failover and failback are operated manually.**
+
+**_Diagram: Postgresql Streaming Replication_**
+![Postgresql-Streaming-Replication4.jpg](/.attachments/Postgresql-Streaming-Replication4-6e618a8c-0332-40ed-a96e-a0cd8cf270e9.jpg =420x)
+
+
+ PostgreSQL uses a mechanism called **Write-Ahead Logging** (**WAL**) to ensure data integrity. Whenever changes are made to the data, entries are first written to a WAL file before the changes are applied to the actual database. This ensures that in case of a crash, the database can recover by replaying the WAL entries.
+
+In the streaming replication, the **primary server outputs** its WAL records continuously to a WAL archive, which standby server(s) can then access. 
+
+The standby server(s) is set up in either **hot standby mode**, which allows it to also handle read-only queries, or **warm standby mode**, which doesn't allow access until the primary server fails.
+
+Once the standby server(s) is configured and the base backup is in place, **WAL records are streamed from the primary to standby(s) in real-time**. The standby server(s) continuously apply these WAL records as soon as they arrive to keep up with the changes happening on the primary server.
+
+PostgreSQL supports both **synchronous** and **asynchronous** replication. In synchronous replication, a transaction is not considered complete on the primary until it has been confirmed written to the WAL on both the primary and standby server(s). This provides strong guarantees of data consistency but can affect performance. In asynchronous replication, there is a potential for data loss if the primary fails before the standby has received all changes, but it provides better performance since transactions are considered complete as soon as the WAL is written on the primary.
+
+
+####**Webserver Redundancy** 
+---
+We install multiple (at least 2) webservers on different physical servers, and we load balance the these nodes with HAproxy. This ensure that the UI and scheduling capabilities are always available.
+
+####**Scheduler Redundancy**
+> We deploy multiple schedulers (at least 2)([Ref](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/scheduler.html#running-more-than-one-scheduler)). Running Apache Airflow with multiple schedulers can help improve the overall performance and resilience of Airflow setup, especially as the number of tasks and workflows (DAGs) grows.
+
+To run Airflow with multiple schedulers, we need to use Airflow 2.x and  a database backend that supports multiple schedulers, such as PostgreSQL( or MySQL).
+
+
+####**Redis replication**
+---
+The replication method used in Redis is the basic Primary-Replica or Leader-Follower replication. This setup consists of a single master Redis instance and one or more follower instances. 
+
+> The chosen architecture is : one master and one slave, with asynchronous replication. Failover and failback are operated manually.
+
+**_Diagram: Redis Replication_**
+![Redis-Cluster.jpg](/.attachments/Redis-Cluster-fbd8b15f-5e24-430a-a060-7b71ab8cc030.jpg)
+
+
+###   <span style="color:blue;font-weight:bold">Scalability and Performance</span>
+1. **Executor Choice:** Choose the right executor (e.g., CeleryExecutor, KubernetesExecutor) based on the workload characteristics and scalability needs.
+1. **Resource Optimization:** Use resource management features to allocate CPU and memory resources based on the task requirements.
+1. **Distribute Workloads:** Ensure that the workload is evenly distributed across the available workers to prevent bottlenecks and improve execution time.
+##   <span style="color:blue;font-weight:bold">Disaster recovery plan (DRP)</span>
+Include it in the global DRP if it exists.
+
+# <span style="color:blue;font-weight:bold">Security</span>
+
+##   <span style="color:blue;font-weight:bold">Authentication</span>
+
+### Local authentication
+Airflow implement a default local authentication. At the installation phase, a superuser is created and some default roles :
+Admin
+Viewer
+User
+Op
+Public
+
+Superuser can create users and roles, and can also assign roles to users.
+### OpenID Connect authentication
+Coming in the second release of the project.
+### RBAC / Multi-tenancy
+![AIrflow-work6.jpg](/.attachments/AIrflow-work6-89ebf440-e795-4b0e-8741-78d3a848445b.jpg)
+
+
+
+##   <span style="color:blue;font-weight:bold">Service accounts</span>
+
+##   <span style="color:blue;font-weight:bold">API Access</span>
+### Apache Airflow API overview
+Since Apache Airflow 2.0 (December 2020), a significant overhaul of the platform of the API was realized. One of the standout features of Airflow 2.0 was the introduction of a Stable REST API (also known as the Stable API or Airflow 2.0 API).
+**Stable REST API**: This new API was designed to be comprehensive, covering a wide range of functionalities needed to interact with Airflow programmatically. It adhered to REST principles and included endpoints for DAG management, task instances, variable management, connection management, and more. The API also included improved authentication and authorization mechanisms.
+
+**OpenAPI Specification**: The Stable API followed the OpenAPI Specification (OAS), making it easier for users to understand and integrate with Airflow programmatically. This made it easier to generate client libraries in various programming languages.
+### Customer access to Airflow API
+>SymphonyAI users; admins, operators, monitors, can access to the **Airflow CLI**. This access access is acheived through PAM.
+
+>SymphonyAI users can access **Airflow UI**. Users are authenticated locally/Azure OIDC ???
+
+>Airflow API are accessible by any SymphonyAI application. Local authentication (login/apssword) / Token authentication / API_key authentication ?? is used
+
+>Airflow API is accessible by Customers applications
+
+![Airflow-API2.jpg](/.attachments/Airflow-API2-0111fb1a-2447-4fee-b02f-49c9a3027514.jpg)
+
+##   <span style="color:blue;font-weight:bold">Secrets Backend</span> 
+Second phase of the project
+Open source Hashicorp Vault to store passwords ?? 
+
+##   <span style="color:blue;font-weight:bold">Technical flows matrix</span>
+
+| Flow ID |Flow status  |Source block  |Source IP  |Target block  |Target IP  |Target port  | Protocol |  |  |  |
+|--|--|--|--|--|--|--|--|--|--|--|
+|  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |
+
+
+
+# <span style="color:blue;font-weight:bold">Deployment and operation</span>
+
+##   <span style="color:blue;font-weight:bold">Build</span>
+TBD
+##   <span style="color:blue;font-weight:bold">Monitoring</span>
+- Monitor URLs : 
+1. Airflow Webserver UI : "https://sss-qualif.symphonygold.com" and "https://sss.symphonygold.com" 
+1. Airflow Flower UI : "https://sss-workers-qualif.symphonygold.com" and "https://sss-workers.symphonygold.com" 
+- Monitor Postgresql server on the primary node                
+- Monitor Postgresql streaming replication
+- Regularly monitor your Redis instances to check their health and replication status.
+- Monitor Airflow scheduler process on both nodes of the server platform
+- Monitor Airflow webserver process on both nodes of the server platform
+- Monitor Airflow celery worker process on all Airflow workers
+
+
+
