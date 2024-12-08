@@ -89,3 +89,5 @@ Here are some key concepts and features that have motivated our choice of Apache
 
 
 ##   <span style="color:blue;font-weight:bold">General Technical Architecture </span>
+![Airflow-Technical-Architecture-Diagram5](https://github.com/user-attachments/assets/d9978fad-104d-4226-a309-d023419ed822)
+
