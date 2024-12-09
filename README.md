@@ -167,7 +167,7 @@ To run Airflow with multiple schedulers, we need to use Airflow 2.x and  a datab
 ---
 The replication method used in Redis is the basic Primary-Replica or Leader-Follower replication. This setup consists of a single master Redis instance and one or more follower instances. 
 
-> The chosen architecture is : one master and one slave, with asynchronous replication. Failover and failback are operated manually.
+> The chosen architecture is : one master and one follower, with asynchronous replication. Failover and failback are operated manually.
 
 **_Diagram: Redis Replication_**
 ![Redis-Cluster.jpg](/.attachments/Redis-Cluster-fbd8b15f-5e24-430a-a060-7b71ab8cc030.jpg)
