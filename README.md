@@ -208,14 +208,7 @@ Since Apache Airflow 2.0 (December 2020), a significant overhaul of the platform
 **Stable REST API**: This new API was designed to be comprehensive, covering a wide range of functionalities needed to interact with Airflow programmatically. It adhered to REST principles and included endpoints for DAG management, task instances, variable management, connection management, and more. The API also included improved authentication and authorization mechanisms.
 
 **OpenAPI Specification**: The Stable API followed the OpenAPI Specification (OAS), making it easier for users to understand and integrate with Airflow programmatically. This made it easier to generate client libraries in various programming languages.
-### Customer access to Airflow API
->SymphonyAI users; admins, operators, monitors, can access to the **Airflow CLI**. This access access is acheived through PAM.
 
->SymphonyAI users can access **Airflow UI**. Users are authenticated locally/Azure OIDC ???
-
->Airflow API are accessible by any SymphonyAI application. Local authentication (login/apssword) / Token authentication / API_key authentication ?? is used
-
->Airflow API is accessible by Customers applications
 
 ![Airflow-API2.jpg](/.attachments/Airflow-API2-0111fb1a-2447-4fee-b02f-49c9a3027514.jpg)
 
